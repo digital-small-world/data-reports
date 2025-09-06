@@ -1,4 +1,39 @@
 import streamlit as st
+import streamlit as st
+import os
+
+# 设置浅色调舒适主题和背景
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #f7f9fa;
+    }
+    .stApp {
+        background: linear-gradient(135deg, #f7f9fa 0%, #e3eaf2 100%);
+        color: #222;
+    }
+    /* 修复按钮默认背景为黑色问题，覆盖所有按钮类 */
+    button {
+        background-color: #e3eaf2 !important;
+        color: #222 !important;
+        border-radius: 8px !important;
+        border: 1px solid #d1dbe6 !important;
+        padding: 0.5em 1.2em !important;
+        font-size: 1em !important;
+        transition: background 0.2s !important;
+    }
+    button:hover {
+        background-color: #c7d6e6 !important;
+        color: #222 !important;
+    }
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4 {
+        color: #2a3a4d;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 import os
 
 # 设置网页标题
