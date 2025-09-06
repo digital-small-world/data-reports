@@ -4,7 +4,7 @@ import streamlit as st
 st.title("PDF文件下载")
 
 # 文件路径
-pdf_path = "reports/OECD 2025 展望.pdf"
+pdf_path = "reports/GlobalEVOutlook2024.pdf"
 
 # 读取PDF文件内容
 with open(pdf_path, "rb") as f:
