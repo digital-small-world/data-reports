@@ -47,8 +47,8 @@ file_infos = []
 for f in os.listdir(reports_dir):
     file_path = os.path.join(reports_dir, f)
     if os.path.isfile(file_path):
-        ctime = os.path.getctime(file_path)
-        file_infos.append((f, ctime))
+        mtime = os.path.getmtime(file_path)
+        file_infos.append((f, mtime))
 
 # 按ctime倒序排序
 file_infos.sort(key=lambda x: x[1], reverse=True)
