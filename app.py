@@ -87,6 +87,9 @@ for filename, file_time in file_infos:
     else:
         size_str = f"{file_size / 1024:.0f} KB"
 
+    # Debug 输出，查看时间戳
+    st.write(filename, file_time, datetime.datetime.fromtimestamp(file_time))
+
     # 显示本地记录的mtime
     show_time = datetime.datetime.fromtimestamp(file_time).strftime("%Y-%m-%d %H:%M")
     # show_time = datetime.datetime.fromtimestamp(1758639287.1847126).strftime("%Y-%m-%d %H:%M")
