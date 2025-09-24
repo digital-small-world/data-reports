@@ -51,9 +51,8 @@ def is_local():
     # 通过隐藏文件判定本地环境
     return os.path.exists(".local_env")
 
-# 本地运行时，记录mtime到json文件
 if is_local():
-    st.write("本地运行，重新扫描文件并更新修改时间记录。")
+    # 本地运行时，记录mtime到json文件
     file_times = {}
     for f in os.listdir(reports_dir):
         file_path = os.path.join(reports_dir, f)
@@ -66,17 +65,12 @@ if is_local():
     file_infos = [(f, file_times[f]) for f in file_times]
 else:
     # 云端运行时，直接读取json文件
-    st.write("云端运行，读取已有的修改时间记录。")
     if os.path.exists(file_times_path):
         with open(file_times_path, "r", encoding="utf-8") as fr:
             file_times = json.load(fr)
         file_infos = [(f, file_times[f]) for f in file_times]
     else:
         file_infos = []
-
-import datetime
-st.write(datetime.datetime.fromtimestamp(1758639287.1847126))
-st.write(file_infos)
 
 
 # 按mtime倒序排序
@@ -87,18 +81,15 @@ st.write("#### 可下载文件列表：")
 for filename, file_time in file_infos:
     file_path = os.path.join(reports_dir, filename)
     file_size = os.path.getsize(file_path)
-    # 文件大小格式化为 MB 或 KB
+
+    # 文件大小格式转化为 MB 或 KB
     if file_size >= 1024 * 1024:
         size_str = f"{file_size / (1024 * 1024):.1f} MB"
     else:
         size_str = f"{file_size / 1024:.0f} KB"
 
-    # Debug 输出，查看时间戳
-    # st.write(filename, file_time, datetime.datetime.fromtimestamp(file_time))
-
     # 显示本地记录的mtime
     show_time = datetime.datetime.fromtimestamp(file_time).strftime("%Y-%m-%d %H:%M")
-    # show_time = datetime.datetime.fromtimestamp(1758639287.1847126).strftime("%Y-%m-%d %H:%M")
     with open(file_path, "rb") as f:
         file_bytes = f.read()
     filename_parts = filename.split('.')
