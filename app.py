@@ -49,6 +49,7 @@ file_infos = []
 
 # 本地运行时，记录mtime到json文件
 if not (os.environ.get("STREAMLIT_CLOUD") or os.environ.get("GITHUB_WORKSPACE")):
+    st.write("本地运行，重新扫描文件并更新修改时间记录。")
     file_times = {}
     for f in os.listdir(reports_dir):
         file_path = os.path.join(reports_dir, f)
@@ -61,6 +62,7 @@ if not (os.environ.get("STREAMLIT_CLOUD") or os.environ.get("GITHUB_WORKSPACE"))
     file_infos = [(f, file_times[f]) for f in file_times]
 else:
     # 云端运行时，直接读取json文件
+    st("云端运行，读取已有的修改时间记录。")
     if os.path.exists(file_times_path):
         with open(file_times_path, "r", encoding="utf-8") as fr:
             file_times = json.load(fr)
