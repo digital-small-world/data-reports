@@ -66,7 +66,7 @@ if is_local():
     file_infos = [(f, file_times[f]) for f in file_times]
 else:
     # 云端运行时，直接读取json文件
-    st("云端运行，读取已有的修改时间记录。")
+    st.write("云端运行，读取已有的修改时间记录。")
     if os.path.exists(file_times_path):
         with open(file_times_path, "r", encoding="utf-8") as fr:
             file_times = json.load(fr)
