@@ -1,6 +1,8 @@
 import streamlit as st
 import streamlit as st
 import os
+import datetime
+import requests
 
 # 设置浅色调舒适主题和背景
 st.markdown(
@@ -47,6 +49,7 @@ file_infos = []
 for f in os.listdir(reports_dir):
     file_path = os.path.join(reports_dir, f)
     if os.path.isfile(file_path):
+        # 默认使用本地mtime
         mtime = os.path.getmtime(file_path)
         file_infos.append((f, mtime))
 
@@ -63,11 +66,30 @@ for filename, _ in file_infos:
         size_str = f"{file_size / (1024 * 1024):.1f} MB"
     else:
         size_str = f"{file_size / 1024:.0f} KB"
+
+    # 获取GitHub summit时间（云端）或本地mtime
+    summit_time = None
+    try:
+        # 检查是否在Streamlit Cloud环境
+        if os.environ.get("STREAMLIT_CLOUD") or os.environ.get("GITHUB_WORKSPACE"):
+            # 获取GitHub API提交时间
+            repo = "digital-small-world/data-reports"
+            api_url = f"https://api.github.com/repos/{repo}/commits?path={file_path}"
+            resp = requests.get(api_url)
+            if resp.status_code == 200 and resp.json():
+                summit_time = resp.json()[0]["commit"]["committer"]["date"]
+                summit_time = summit_time.replace("T", " ").replace("Z", "")
+    except Exception:
+        summit_time = None
+    # 如果没有获取到GitHub summit时间，则用本地mtime
+    if not summit_time:
+        summit_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d %H:%M")
+
     with open(file_path, "rb") as f:
         file_bytes = f.read()
     filename_parts = filename.split('.')
     st.download_button(
-        label=f"{filename_parts[0]}（{filename_parts[-1]}，{size_str}）",
+        label=f"{filename_parts[0]}（{filename_parts[-1]}，{size_str}，{summit_time}）",
         data=file_bytes,
         file_name=filename,
         mime="application/pdf" if filename.lower().endswith(".pdf") else "application/octet-stream"
