@@ -47,12 +47,12 @@ reports_dir = "reports"
 file_times_path = "data/file_times.json"
 file_infos = []
 
-def is_cloud():
-    # Streamlit Cloud/Server 通常设置 STREAMLIT_SERVER_HEADLESS=1
-    return os.environ.get("STREAMLIT_SERVER_HEADLESS") == "1" or os.environ.get("STREAMLIT_CLOUD") or os.environ.get("GITHUB_WORKSPACE")
+def is_local():
+    # 仅在本地开发环境下写入
+    return os.environ.get("CI") is None and os.environ.get("STREAMLIT_CLOUD") is None and os.environ.get("GITHUB_WORKSPACE") is None
 
 # 本地运行时，记录mtime到json文件
-if not is_cloud():
+if is_local():
     st.write("本地运行，重新扫描文件并更新修改时间记录。")
     file_times = {}
     for f in os.listdir(reports_dir):
