@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit as st
 import os
 import datetime
-import requests
+import json
 
 # 设置浅色调舒适主题和背景
 st.markdown(
@@ -44,21 +44,36 @@ st.title("「数字小世界」数据报告下载")
 # 扫描 reports 目录下所有文件
 reports_dir = "reports"
 
-# 获取文件及其创建/移动时间
+file_times_path = "data/file_times.json"
 file_infos = []
-for f in os.listdir(reports_dir):
-    file_path = os.path.join(reports_dir, f)
-    if os.path.isfile(file_path):
-        # 默认使用本地mtime
-        mtime = os.path.getmtime(file_path)
-        file_infos.append((f, mtime))
 
-# 按ctime倒序排序
+# 本地运行时，记录mtime到json文件
+if not (os.environ.get("STREAMLIT_CLOUD") or os.environ.get("GITHUB_WORKSPACE")):
+    file_times = {}
+    for f in os.listdir(reports_dir):
+        file_path = os.path.join(reports_dir, f)
+        if os.path.isfile(file_path):
+            mtime = os.path.getmtime(file_path)
+            file_times[f] = mtime
+    os.makedirs("data", exist_ok=True)
+    with open(file_times_path, "w", encoding="utf-8") as fw:
+        json.dump(file_times, fw)
+    file_infos = [(f, file_times[f]) for f in file_times]
+else:
+    # 云端运行时，直接读取json文件
+    if os.path.exists(file_times_path):
+        with open(file_times_path, "r", encoding="utf-8") as fr:
+            file_times = json.load(fr)
+        file_infos = [(f, file_times[f]) for f in file_times]
+    else:
+        file_infos = []
+
+# 按mtime倒序排序
 file_infos.sort(key=lambda x: x[1], reverse=True)
 
 st.write("#### 可下载文件列表：")
 
-for filename, _ in file_infos:
+for filename, file_time in file_infos:
     file_path = os.path.join(reports_dir, filename)
     file_size = os.path.getsize(file_path)
     # 文件大小格式化为 MB 或 KB
@@ -67,30 +82,13 @@ for filename, _ in file_infos:
     else:
         size_str = f"{file_size / 1024:.0f} KB"
 
-    # 获取GitHub Last commit date（云端）或本地mtime
-    last_commit_time = None
-    try:
-        # 检查是否在Streamlit Cloud环境
-        if os.environ.get("STREAMLIT_CLOUD") or os.environ.get("GITHUB_WORKSPACE"):
-            # 使用仓库相对路径
-            repo = "digital-small-world/data-reports"
-            rel_path = f"reports/{filename}"
-            api_url = f"https://api.github.com/repos/{repo}/commits?path={rel_path}&per_page=1"
-            resp = requests.get(api_url)
-            if resp.status_code == 200 and resp.json():
-                last_commit_time = resp.json()[0]["commit"]["committer"]["date"]
-                last_commit_time = last_commit_time.replace("T", " ").replace("Z", "")
-    except Exception:
-        last_commit_time = None
-    # 如果没有获取到GitHub Last commit date，则用本地mtime
-    if not last_commit_time:
-        last_commit_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d %H:%M")
-
+    # 显示本地记录的mtime
+    show_time = datetime.datetime.fromtimestamp(file_time).strftime("%Y-%m-%d %H:%M")
     with open(file_path, "rb") as f:
         file_bytes = f.read()
     filename_parts = filename.split('.')
     st.download_button(
-        label=f"{filename_parts[0]}（{filename_parts[-1]}，{size_str}，{last_commit_time}）",
+        label=f"{filename_parts[0]}（{filename_parts[-1]}，{size_str}，{show_time}）",
         data=file_bytes,
         file_name=filename,
         mime="application/pdf" if filename.lower().endswith(".pdf") else "application/octet-stream"
