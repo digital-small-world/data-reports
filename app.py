@@ -48,8 +48,8 @@ file_times_path = "data/file_times.json"
 file_infos = []
 
 def is_local():
-    # 仅在本地开发环境下写入
-    return os.environ.get("CI") is None and os.environ.get("STREAMLIT_CLOUD") is None and os.environ.get("GITHUB_WORKSPACE") is None
+    # 通过隐藏文件判定本地环境
+    return os.path.exists(".local_env")
 
 # 本地运行时，记录mtime到json文件
 if is_local():
