@@ -2,7 +2,6 @@ import streamlit as st
 import streamlit as st
 import os
 import datetime
-import json
 
 # 设置浅色调舒适主题和背景
 st.markdown(
@@ -82,7 +81,6 @@ else:
                 file_infos.append((file_path.name, 0))
 
 
-# 按mtime倒序排序
 # 按时间倒序排序
 file_infos.sort(key=lambda x: x[1], reverse=True)
 
@@ -98,7 +96,7 @@ for filename, file_time in file_infos:
     else:
         size_str = f"{file_size / 1024:.0f} KB"
 
-    # 显示本地记录的mtime
+    # 显示文件下载按钮，包括文件相关信息
     show_time = datetime.datetime.fromtimestamp(file_time).strftime("%Y-%m-%d %H:%M")
     with open(file_path, "rb") as f:
         file_bytes = f.read()
