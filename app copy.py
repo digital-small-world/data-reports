@@ -52,38 +52,28 @@ def is_local():
     return os.path.exists(".local_env")
 
 if is_local():
-    # 本地运行时，按mtime排序
-    file_infos = []
+    # 本地运行时，记录mtime到json文件
+    file_times = {}
     for f in os.listdir(reports_dir):
         file_path = os.path.join(reports_dir, f)
         if os.path.isfile(file_path):
             mtime = os.path.getmtime(file_path)
-            file_infos.append((f, mtime))
+            file_times[f] = mtime
+    os.makedirs("data", exist_ok=True)
+    with open(file_times_path, "w", encoding="utf-8") as fw:
+        json.dump(file_times, fw)
+    file_infos = [(f, file_times[f]) for f in file_times]
 else:
-    # 云端运行时，按git last_commit_date排序
-    import subprocess
-    from pathlib import Path
-    file_infos = []
-    for file_path in Path(reports_dir).rglob('*'):
-        if file_path.is_file():
-            result = subprocess.run(
-                ['git', 'log', '-1', '--format=%ci', '--', str(file_path)],
-                capture_output=True, text=True
-            )
-            commit_date = result.stdout.strip() if result.stdout.strip() else None
-            if commit_date:
-                try:
-                    dt = datetime.datetime.strptime(commit_date, "%Y-%m-%d %H:%M:%S %z")
-                    ts = dt.timestamp()
-                except Exception:
-                    ts = 0
-                file_infos.append((file_path.name, ts))
-            else:
-                file_infos.append((file_path.name, 0))
+    # 云端运行时，直接读取json文件
+    if os.path.exists(file_times_path):
+        with open(file_times_path, "r", encoding="utf-8") as fr:
+            file_times = json.load(fr)
+        file_infos = [(f, file_times[f]) for f in file_times]
+    else:
+        file_infos = []
 
 
 # 按mtime倒序排序
-# 按时间倒序排序
 file_infos.sort(key=lambda x: x[1], reverse=True)
 
 st.write("#### 可下载文件列表：")
